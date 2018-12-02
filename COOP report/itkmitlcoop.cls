@@ -17,6 +17,7 @@
 \RequirePackage{lineno}
 \RequirePackage{afterpage}
 \RequirePackage{subfigure}
+\RequirePackage{etoolbox}
 
 % ##### new command for Roman number
 \newcommand{\rNum}[1]{\lowercase\expandafter{\romannumeral #1\relax}}
@@ -113,15 +114,31 @@
 
 % tocitem format for chapter
 \titlecontents{chapter}[0mm]
-{\stepcounter{tocitem}\tocheadcont{\thelinenumber}{\thetocitem}{สารบัญ}}
+{\stepcounter{tocitem}\tocheadcont{\thelinenumber}{\thetocitem}{\contentsname}}
 {\chaptername\hspace{1ex}\thecontentslabel\hspace{2mm}}
 {}{\hfill \contentspage}
 
 % tocitem format for section
 \titlecontents{section}[0mm]
-{\stepcounter{tocitem}\tocheadcont{\thelinenumber}{\thetocitem}{สารบัญ}}
+{\stepcounter{tocitem}\tocheadcont{\thelinenumber}{\thetocitem}{\contentsname}}
 {\hspace{6ex}\thecontentslabel\hspace{2mm}}{\hspace{6ex}\thecontentslabel\hspace{2mm}}
 {\hfill \contentspage}
+
+% ##### LOT Overrided 
+\newcommand{\lotheadcont}[3]{
+    \ifthenelse{#1>29 \OR #2>29}{
+        %Should be a newpage here.
+        \pagebreak[4]
+        \resetlinenumber[1]
+        \setcounter{lotitem}{1}
+        \begin{center}
+            {\LARGE \textbf{#3 (ต่อ)} }
+        \end{center}  \vskip2em
+        \begin{flushright}
+            \textbf{หน้า}
+        \end{flushright}
+    }{}
+}
 
 \renewcommand\listoftables{%
     \begin{center}
@@ -131,15 +148,29 @@
         \textbf{หน้า}
     \end{flushright}
     \resetlinenumber[1]
-    \setcounter{tocitem}{0}
+    \newcounter{lotitem}
     \@starttoc{lot}%
-    \setcounter{tocitem}{0}
     \clearpage
-    \pagewiselinenumbers
     \cleardoublepage
 }
 
-\titlecontents{table}[0mm]{\stepcounter{tocitem}\tocheadcont{\thelinenumber}{\thetocitem}{\listftablename}}{\contentspush{\tablename\hspace{1ex}\thecontentslabel\hspace{2mm}}}{}{\hfill \contentspage}
+\titlecontents{table}[0mm]{\stepcounter{lotitem}\lotheadcont{\thelinenumber}{\thelotitem}{\listftablename}}{\contentspush{\tablename\hspace{1ex}\thecontentslabel\hspace{2mm}}}{}{\hfill \contentspage}
+
+% ##### LOF Overrided 
+\newcommand{\lofheadcont}[3]{
+    \ifthenelse{#1>29 \OR #2>29}{
+        %Should be a newpage here.
+        \pagebreak[4]
+        \resetlinenumber[1]
+        \setcounter{lofitem}{1}
+        \begin{center}
+            {\LARGE \textbf{#3 (ต่อ)} }
+        \end{center}  \vskip2em
+        \begin{flushright}
+            \textbf{หน้า}
+        \end{flushright}
+    }{}
+}
 
 \renewcommand\listoffigures{%
     \begin{center}
@@ -149,16 +180,15 @@
         \textbf{หน้า}
     \end{flushright}
     \resetlinenumber[1]
-    \setcounter{tocitem}{0}
-    \@starttoc{lof}%
-    \setcounter{tocitem}{0}
-    \clearpage
+    \newcounter{lofitem}
+    \@starttoc{lof}
     \pagewiselinenumbers
+    \clearpage
     \cleardoublepage
 }
 
 % Indent the next line of the entry by the width of the label with \contentspush
-\titlecontents{figure}[0mm]{\stepcounter{tocitem}\tocheadcont{\thelinenumber}{\thetocitem}{\listfigurename}}{\contentspush{\figurename\hspace{1ex}\thecontentslabel\hspace{2mm}}}{}{\hfill \contentspage}
+\titlecontents{figure}[0mm]{\stepcounter{lofitem}\lofheadcont{\thelinenumber}{\thelofitem}{\listfigurename}}{\contentspush{\figurename\hspace{1ex}\thecontentslabel\hspace{2mm}}}{}{\hfill\contentspage}
 
 %  Newcommand each required page
 \newcommand{\makecover}{
@@ -175,7 +205,7 @@
         \Large{\textbf{\AuName}}  \\
         \Large{\textbf{รหัสประจำตัว \SId}} \null \vfill
         \large{\textbf{รายงานนี้เป็นส่วนหนึ่งของการศึกษารายวิชา สหกิจศึกษา \\
-                สาขาวิชา\Department คณะเทคโนโลยีสารสนเทศ \\
+                สาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ \\
                 ภาคเรียนที่~\Sem \  ปีการศึกษา~\AcaY\\ 
                 สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง }}
     \end{center}
@@ -239,9 +269,9 @@
     \noindent เรื่อง ขอส่งรายงานการปฏิบัติงานสหกิจศึกษา \\
     เรียน \Advisor \vskip0.1cm
     
-    \hskip0.2cm ที่ปรึกษาสหกิจศึกษาในสาขาเทคโนโลยีสารสนเทศ (\Department) \vskip1cm
+    \hskip0.2cm ที่ปรึกษาสหกิจศึกษาในสาขาเทคโนโลยีสารสนเทศ \vskip1cm
     
-    ตามที่ข้าพเจ้า \AuName \ นักศึกษาสาขาวิชา \Department คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ได้ปฏิบัติงานสหกิจศึกษาระหว่างวันที่ \StartDWork \ ถึงวันที่ \EndDWork \ ในตำแหน่ง \Position \ ณ สถานประกอบการชื่อ \Company \ และได้รับมอบหมายจากพนักงานที่ปรึกษาให้ศึกษาและจัดทำรายงาน เรื่อง \ThesisTiTle
+    ตามที่ข้าพเจ้า \AuName \ นักศึกษาสาขาวิชาเทคโนโลยีสารสนเทศ คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง ได้ปฏิบัติงานสหกิจศึกษาระหว่างวันที่ \StartDWork \ ถึงวันที่ \EndDWork \ ในตำแหน่ง \Position \ ณ สถานประกอบการชื่อ \Company \ และได้รับมอบหมายจากพนักงานที่ปรึกษาให้ศึกษาและจัดทำรายงาน เรื่อง \ThesisTiTle
     
     บัดนี้ การปฏิบัติงานสหกิจศึกษาได้สิ้นสุดลงแล้ว จึงใคร่ขอส่งรายงานการปฏิบัติงาน สหกิจศึกษาดังกล่าวมาพร้อมนี้ จำนวน 1 เล่ม เพื่อขอรับคำปรึกษาต่อไป 
     
@@ -289,7 +319,7 @@
             \textbf{ชื่อรายงานการปฏิบัติงานสหกิจศึกษา} & \ThesisTiTle \\
             \textbf{ผู้รายงาน} & \AuName \\
             \textbf{คณะ} & เทคโนโลยีสารสนเทศ \\
-            \textbf{สาขาวิชา} & \Department
+            \textbf{สาขาวิชา} & เทคโนโลยีสารสนเทศ
         \end{tabularx}
     \end{table} \vskip3cm
     
@@ -305,7 +335,7 @@
         
         คณะเทคโนโลยีสารสนเทศ สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง	\\
         อนุมัติให้นับรายงานการปฏิบัติงานสหกิจศึกษาฉบับนี้ เป็นส่วนหนึ่งของการศึกษา \\
-        ตามหลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชา\Department
+        ตามหลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาเทคโนโลยีสารสนเทศ
         
     \end{center}
 }
@@ -317,19 +347,42 @@
     
     \begin{table}[h]
         \begin{tabularx}{\linewidth}{lX}
-        	\textbf{ชื่อรายงาน} & \ThesisTiTle \\
+            \textbf{ชื่อรายงาน} & \ThesisTiTle \\
             \textbf{ชื่อนักศึกษา} & \AuName \\
             \textbf{รหัสนักศึกษา} & \SId \\
-            \textbf{สาขาวิชา} & \Department \\
+            \textbf{สาขาวิชา} & เทคโนโลยีสารสนเทศ \\
             \textbf{อาจารย์ที่ปรึกษา} & \Advisor \\
             \textbf{ปีการศึกษา} & \AcaY
         \end{tabularx}
     \end{table}
     
-    
     \vskip1cm
     \begin{center}
         \textbf{\large บทคัดย่อ}
+    \end{center}
+    
+    #1
+}
+
+\newcommand{\makeabstracteng}[1]{
+    %-- Abstract Page ------------------------------------------
+    \newpage
+    \addcontentsline{toc}{chapter}{บทคัดย่อภาษาอังกฤษ}
+    
+    \begin{table}[h]
+        \begin{tabularx}{\linewidth}{lX}
+            \textbf{Project Title} & \ThesisTiTleEng \\
+            \textbf{Name} & \AuNameEng \\
+            \textbf{Student ID} & \SId \\
+            \textbf{Department} & \DepartmentEng \\
+            \textbf{Advisor} & \AdvisorEng \\
+            \textbf{Year} & \AcaY
+        \end{tabularx}
+    \end{table}    
+    
+    \vskip1cm
+    \begin{center}
+        \textbf{\large Abstract}
     \end{center}
     
     #1
