@@ -1,4 +1,262 @@
-\chapter{วิธีการทดลอง}
+\chapter{การออกแบบระบบ และรายละเอียดการพัฒนา}
 \label{chapter:experiment}
 
-บทที่สาม
+
+\section{โครงสร้างและภาพรวมของระบบ}
+
+ระบบยืนยันและพิสูจน์ตัวตนลูกค้าผ่านวิดีโอคอลหรือในชื่อโปรเจค TORPEDO พัฒนาขึ้นเป็นระบบกลางสำหรับใช้ในการลงทะเบียนซิมการ์ด และใช้ในกระบวนการรู้จักลูกค้า  ให้กับสินค้าและบริการของบริษัท แอดวานซ์ อินโฟร์ เซอร์วิส จำกัด(AIS) โดยระบบที่พัฒนานั้นแบ่งเป็น 3 ส่วน ได้แก่ เว็บแอปพลิเคชันส่วนของลูกค้า(Client), เว็ปแอปพลิเคชันส่วนของผู้ให้บริการ(Call center) และ API Server \& Database (System) ของระบบ 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{TorpedoStack}
+	\caption{โครงสร้างระบบ TORPEDO}
+	\label{Fig:stack}
+\end{figure}
+
+ในส่วนของเว็บแอปพลิเคชันทั้งส่วนลูกค้าและผู้ให้บริการจะถูกรวมเข้าไว้ด้วยกันเป็นส่วน Frontend ของระบบโดยจะจัดการการสิทธิในการเข้าใช้งานระบบจากประเภทของบัญชีผู้ใช้งาน โดยปกติแล้วระบบจะนำทางเข้ามาในส่วนของลูกค้าเสมอ ซึ่งถ้าหากเป็นผู้ให้บริการจะต้องเข้าสู่ระบบผ่านทางระบบของ AIS ก่อนจึงจะสามารถเข้าใช้งานในส่วนของผู้ให้บริการได้ ส่วนทางลูกค้าจะมีการตรวจสอบสถานะการลงทะเบียนก่อนว่าเคยมีการลงทะเบียนไปแล้วหรือไม่ เมื่อลูกค้าติดต่อเข้ามาเพื่อขอทำการยืนยันตัวตน ทางเจ้าหน้าที่ผู้ให้บริการจะรับสายและเริ่มกระบวนการผ่านวิดีโอคอล สำหรับการลงทะเบียนซิมการ์ดแล้วก็ คือการถ่ายรูปบัตรประชาชน และรูปถ่ายใบหน้าคู่กับบัตรประชาชน ในขั้นตอนนี้ผู้ให้บริการมีสิทธิที่จะอนุมัติ หรือไม่อนุมัติหากพบว่ามีข้อมูลที่ไม่สมบูรณ์ หรือมีความผิดปกติจากนั้นระบบจะส่งข้อมูลที่อนุมัติไปตรวจสอบกับฐานข้อมูลของกรมการปกครอง (Department Of Provincial Administration: DOPA) โดยจะมีการตรวจเทียบใบหน้าจากในรูปถ่ายกับรูปในบัตรประจำตัวประชาชน ภาพถ่ายทั้งสองยังถูกนำไปสร้างเป็นเอกสารเพื่อเป็นหลักฐานการเปิดใช้งานซิมการ์ดให้ทาง AIS  หลังจากขั้นตอนนี้จบลงระบบจะส่งผลลัพธ์กลับไปยังฝั่งลูกค้าทำให้ทราบผลลัพธ์ได้ในทันที
+ส่วนบันทึกวิดีโอการลงทะเบียนและภาพถ่ายทั้งหมดจะถูกอัพโหลดเก็บไว้ในระบบ
+
+ส่วนทาง API Server \& Database จะมีหน้าที่ในการจัดข้อมูลที่ทางลูกค้า และผู้ให้บริการส่งเข้ามา เก็บประวัติการใช้งาน และตรวจสอบสิทธิการเข้าถึงและการใช้งานข้อมูลต่าง ๆ รวมทั้งจัดเก็บและเรียกใช้งานระบบอื่นที่เกี่ยวข้องจากภายนอก โดยจะแยกย่อยออกเป็น Service ต่าง ดังนี้
+\subsection{TORPEDO SERVICE SDK}
+เป็นชุดพัฒนาซอฟต์แวร์(Software Development Kit) ที่รวมชุดคำสั่ง และฟังก์ชันที่จำเป็นต่อการเรียกใช้งาน Service และฐานข้อมูลจากระบบภายนอก
+\subsection{TORPEDO COMMON SDK}
+เป็นชุดพัฒนาซอฟต์แวร์(Software Development Kit) ที่รวมชุดคำสั่ง และฟังก์ชันที่จำเป็นสำหรับการพัฒนาระบบ เช่น การแปลงค่า, ตรวจสอบข้อมูล, การสร้างค่าสุ่ม, การเข้ารหัส เป็นต้น
+\subsection{TORPEDO DATABASE SERVICE}
+Service ที่ใช้ในการทำ CRUD ให้กับฐานของมูลของ TORPEDO รวมไปถึงการจัดการโครงสร้างของฐานข้อมูลและช่องทางในการเรียกใช้ข้อมูล
+\subsection{TORPEDO PROFILE SERVICE}
+Service ที่ใช้ตรวจสอบสถานะและข้อมูลข้อผู้ใช้งานของทั้งระบบ เช่น เลขบัตรประจำตัวประชาชน, ชื่อผู้ใช้, เบอร์โทรศัพท์ ไปจนถึงสิทธิในการเข้าใช้งานระบบในส่วนต่างๆ
+\subsection{TORPEDO KYC SERVICE}
+Service ที่ใช้จัดการและควบคุมกระบวนการรู้จักลูกค้า การตรวจสอบข้อมูลกับDOPA การยืนยันตัวตน การค้นหาเจ้าหน้าที่ให้กับลูกค้า การสร้างเอกสาร และการอัพโหลดข้อมูลล้วน เกิดขึ้นใน service นี้ทั้งสิ้น
+\subsection{TORPEDO ANDROMEDA SERVICE}
+Service ที่ทำหน้าที่เป็น Proxy server ที่ใช้ในการทำ CRUD กับฐานข้อมูลของทาง AIS
+
+\section{คุณสมบัติหลักของระบบ}
+\begin{enumerate}
+	\item ติดต่อสื่อสารผ่านวิดีโอคอล
+	\item ส่งข้อมูลและหลักฐานเพื่อยืนยันตัวตนกับระบบของทางรัฐบาล
+	\item สร้างเอกสารที่เป็นหลักฐานในการยืนยันตัวตน
+	\item บันทึกภาพและวิดีโอในขณะที่ทำกระบวนการรู้จักลูกค้า
+	\item รองรับการแสดงผลในสองภาษา ไทย/อังกฤษ (เฉพาะฝั่งลูกค้า)
+	\item รองรับการแสดงผลในหลายอุปกรณ์ (Responsive) (เฉพาะฝั่งลูกค้า)
+\end{enumerate}
+
+ \section{Use Cases}
+ Use case  ของระบบที่ปรากฏในรูปที่ \ref{Fig:usecase} จะแสดงถึงความสัมพันธ์ระหว่างระบบกับผู้ใช้งานระบบ สำหรับ TORPEDO แล้วเราสามารถแบ่งผู้ใช้งานได้เป็นสองประเภท คือ ลูกค้า (Client) และเจ้าหน้าผู้ให้บริการ(Call center)
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.9\textwidth]{UseCase}
+	\caption{TORPEDO use cases diagram}
+	\label{Fig:usecase}
+\end{figure}
+
+\subsection{See KYC result}
+	ลูกค้าสามารถที่จะดูผลลัพธ์หลังจากทำการยืนยันตัวตนได้ว่าสำเร็จหรือไม่
+\subsection{Check KYC status}
+	ลูกค้าสามารถตรวจสอบสถานะของการยืนยันตัวตนว่าลูกค้าได้หากเคยเข้ามายืนยันตัวตนผ่านระบบนี้สำเร็จไปแล้วระบบจะแสดงผลลัพธ์การลงว่าลงทะเบียนสำเร็จแล้ว
+\subsection{Change language}
+	ลูกค้าสามารถเปลี่ยนการแสดงผลของภาษาในระบบได้ ซึ่งสามารถปรับเปลี่ยนได้ในสองภาษา คือ ภาษาไทย และ ภาษาอังกฤษ
+\subsection{Video call}
+	ลูกค้า และเจ้าหน้าที่ สามารถที่จะติดต่อสื่อสารกันผ่านวิดีโอคอลเพื่อทำกระบวนการรู้จักลูกค้า 
+\subsection{Login SSO}
+	เจ้าหน้าที่สามารถเข้าสู่ระบบ SSO ซึ่งเป็นระบบยืนยันตัวตนของพนักงาน ซึ่งเมื่อเข้าสู๋ระบบสำเร็จ TORPEDO จะสร้าง cookie เพื่อใช้ในการเข้าแอปพลิเคชันส่วนผู้ให้บริการ
+\subsection{Logout SSO}
+เจ้าหน้าที่สามารถออกจากแอปพลิเคชันส่วนของผู้ให้บริการโดย TORPEDO จะลบ cookie ที่ใช้เข้าแอปพลิเคชันส่วนผู้ให้บริการ ออกโดยอัตโนมัติ
+\subsection{Online video call}
+เจ้าหน้าที่สามารถเข้าสู่โหมด online เพื่อเตรียมพร้อมที่จะรับสายลูกค้าที่ติดต่อเข้ามา
+\subsection{Offline video call}
+เจ้าหน้าที่สามารถเข้าสู่โหมด offline ในกรณียังไม่พร้อมจะรับสายที่มีการติดต่อจากลูกค้า ระบบจัดการให้ลูกค้าไม่สามารถติดต่อเจ้าที่ที่อยู่ในโหมดนี้
+\subsection{View Client calling}
+เจ้าหน้าที่สามารถเห็นหน้ารายการลูกค้าที่ติดต่อเข้ามา ซึ่งจะแสดงชื่อรหัสของผู้ใช้งาน ช่องการของสินค้าหรือบริการที่ติดต่อเข้ามา และปุ่มสำหรับรับสายของลูกค้า
+\subsection{Answer Client calling}
+เจ้าหน้าที่สามารถรับสายลูกค้าได้ เมื่อมีลูกค้าติดต่อเข้ามา
+\subsection{Hangup call}
+เจ้าหน้าที่สามารถวางสายระหว่างการ videocall ได้
+\subsection{View Client Info}
+เจ้าหน้าที่สามารถเห็นข้อมูลของลูกค้าที่กำลังติดต่อด้วยระหว่าง videocall
+\subsection{Approve KYC}
+เจ้าหน้าที่สามารถอนุมัติการยืนยันตัวตนของลูกค้าได้ เมื่อพิจารณาแล้วว่าข้อมูลมีความถูกต้องและครบถ้วนสมบูรณ์
+\subsection{Reject KYC}
+เจ้าหน้าที่สามารถปฏิเสธการยืนยันตัวตนของลูกค้าได้ เมื่อพิจารณาแล้วว่าข้อมูลมีความผิดปกติ หรือไม่ครบถ้วน
+\subsection{View upload proceess}
+เจ้าหน้าที่สามารถดูความคืบหน้าของการอัพโหลดข้อมูลเข้าสู่ได้
+
+\section{รายละเอียดการพัฒนา}
+
+ในการปฏิบัติงานงาน เนื่องจากส่วน Backend นั้นส่วนใหญ่มีการพัฒนาขึ้นเสร็จอยู่ก่อนแล้ว งานในส่วนนี้จึงเป็นการเพิ่มเติมและปรับปรุงโครงสร้างระบบเดิม  งานที่ได้รับมอบหมายส่วนใหญ่จึงอยู่ที่ส่วน Frontend ของ Client ซึ่งจะเป็นการพัฒนาเว็บแอปพลิเคชัน]ส่วนติดต่อผู้ใช้กับลูกค้า การควบคุมสิทธิการเข้าถึง รวมทั้งการติดต่อสื่อสารผ่านวิดีโอคอลจากฝั่งลูกค้า โดยมีการแบ่งหน้าที่การรับผิดชอบและงานที่ได้รับมอบหมาย ดังที่ปรากฏในตารางที่ \ref{Table:task} 
+\begin{table}[!htb]
+	\captionsetup{singlelinecheck = false, justification=justified}
+	\caption{ตารางแบ่งหน้าที่และส่วนงานที่รับผิดชอบ}
+	\centering
+	\label{Table:task}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		TORPEDO System&ผู้รับผิดชอบ&หมายเหตุ\\
+		\hline
+		Common SDK&พนักงาน&\\
+		Service SDK&พนักงาน \& นักศึกษา&\makecell[lt]{มีส่วนในการพัฒนา Service}\\
+		Adromeda Service&พนักงาน&\\
+		Database Service&พนักงาน&\\
+		Profile Service&พนักงาน&\\
+		KYC Service&พนักงาน \& นักศึกษา&\makecell[lt]{มีส่วนช่วยในการพัฒนา และแก้ไขปรับปรุง\\Service }\\
+		Client application&นักศึกษา& \makecell[lt]{พัฒนาแอปพลิเคชันในส่วนของลูกค้าทั้งหมด\\ รวมทั้งการติดต่อสื่อสารผ่านวิดีโอคอล}\\
+		Call center application&พนักงาน \& นักศึกษา&\makecell[lt]{มีส่วนในการแก้ไขปรับปรุงระบบ}\\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection{Client application}
+	อย่างที่ได้กล่าวไปแล้วถึงหน้าที่ของเว็บแอปพลิเคชันในส่วนของลูกค้า ในด้านการทำพัฒนาเว็บแอปพลิเคชันส่วนนี้ถูกพัฒนาขึ้นโดนใช้ Angular version 6.1 ซึ่งเป็น Frontend framework ที่ช่วยให้เราสามารถจัดโครงสร้างของงานได้อย่างเป็นสะดวกและมีเครื่องมือที่ช่วยให้การพัฒนารวดเร็วขึ้น โดยเราได้แบ่งโครงสร้างของระบบส่วนนี้ออกเป็น 5 ส่วนซึ่งเรียกว่า โมดูล (Module) ซึ่งรวบรวมหน้าตาของเว็บ (Template) และส่วนควมคุม (Component) เอาไว้และข้อมูลต่างๆจะใช้เทคนิค Dependency Injection: DI ในการจัดการข้อมูลของ Service จากภายนอก โดย angular จะมี module ที่ช่วยให้การทำ DI สะดวกขึ้น รวมกับการใช้ ngrx ซึ่งเป็นไลบรารี่ที่จะช่วยจัดการ state ของระบบในลักษณะการทำงานของโปรแกรมแบบ reactive programming ที่จะทำให้ข้อมูลของตัวแปรอยู่ในรูปแบบของ stream ที่จะมีการเปลี่ยนแปลงไปตามช่วงเวลา 
+	
+	\setcounter{secnumdepth}{4} 
+	\subsubsection{MockupModule}
+		โมดูลสำหรับจำลองข้อมูลซึ่งใช้ในขั้นตอนการพัฒนา และทดสอบการทำงานของแอปพลิเคชัน เป็นแบบฟอร์มกรอกข้อมูลที่ต้องการจะจำลอง เช่น เบอร์โทรศัพท์, เลขบัตรประชาชน อันที่จริงแล้วข้อมูลดังกล่าวจะถูกส่งมาจากระบบของสินค้าและบริการของทาง AIS ที่จะติดต่อเข้ามาขอทำกระบวนการรู้จักลูกค้า โมดูลนี้จะถูกนำออกไปเมื่อนำไปในการให้บริการจริง
+	\subsubsection{CallbackModule}
+		โมดูลที่จะใช้ได้การตรวจสอบสิทธิในการเข้าใช้งานระบบ และสถานะการยืนยันตัวตนของลูกค้า สำหรับโมดูลนี้ในมุมมองของผู้ใช้งานจะเป็นเพียงหน้าว่างที่แสดงผลในช่วงเวลาสั้นๆ แต่ในเบื้องหลังแล้วโมดูลนี้จะจัดการตรวจสอบข้อมูลโดนทำงานรวมกัน Service CheckKycStatus และ verifyToken ที่อยู่ใน TORPEDO KYC Service เพื่อสร้าง cookie ซึ่งจะระบุสิทธิการเข้าถึงต่างๆและข้อมูลที่จะเป็นในการใช้งานระบบ เช่น เบอร์โทรศัพท์ของลูกค้า, token สำหรับยืนยันตัวตนและเข้าใช้งาน เป็นต้น 
+	\subsubsection{IntroModule}
+	 เป็นโมดูลที่ใช้แสดงคำแนะนำและขั้นตอนก่อนเริ่มติดต่อหาเจ้าหน้าที่ ซึ่งจะเป็นเพียงหน้าที่ใช้แสดงข้อความ คำแนะนำต่างๆ รวมทั้งปุ่มที่ใช้สำหรับเริ่มติดต่อเจ้าหน้าที่
+	 \subsubsection{VideocallModule}
+	 เป็นโมดูลที่ใช้การสื่อสารกับเจ้าหน้าที่ หลังจากที่ลูกค้ากดปุ่มเริ่มติดต่อเจ้าหน้าที่จากใน IntroModule ระบบจะจัดการติดต่อและค้นหาเจ้าหน้าที่ที่พร้อมให้บริการจากในโมดูลนี้ซึ่งจะทำงานรวมกับ Service อีกหลายตัว โดยจะใช้ไลบรารี JsSIP ซึ่งเป็นไลบรารี่สำหรับการส่งข้อมูลด้วยโพรโทคอล SIP โดยจะสื่อสารกันผ่าน WebSocket ซึ่งจะมีรูปแบบการเชื่อมต่อที่แตกต่างจากทฤษฏีที่กล่าวไปในบทที่ 2 โดยเราจะใช้ Proxy server เป็นตัวคันกลางในการสื่อสาร ดังที่รูปที่ \ref{Fig:torpedoSIP} ลูกค้าจะไม่ได้ทำการสื่อสารกับเจ้าหน้าที่โดยตรงแต่จะผ่านเครื่อง Server ตัวกลางจะตรวจหารายชื่อของเจ้าหน้าที่ที่พร้อมให้บริการมาเก็บไว้ โดยการทำงานจะเริ่มจากการสร้าง UserAgent: UA ซึ่งเปรียบเสมือนโทรศัพท์ที่มีชื่อของลูกค้า ใน JsSIP ได้มีคำสั่งสำหรับสร้างและจัดการเหตุการณ์ต่างๆให้เรียบร้อยแล้วจึงช่วยประหยัดเวลาในการตั้งค่าในส่วนนี้ไปได้อย่างมาก เมื่อ UA เริ่มติดต่อมา Server จะส่งรายชื่อซึ่งเป็น SIP URLs ของเจ้าหน้าที่ให้เพื่อเริ่มการโทร โดยการส่งข้อมูลมีเดียของ JsSIP จะใช้โพรโทคอล WebSocket ในการส่งข้อมูลซึ่งจะทำให้ลูกค้าและเจ้าหน้าที่สามารถสื่อสารกันได้ในทันที (Realtime)
+	 ในมุมมองของผู้ใช้หน้านี้จะมีหน้าจอที่แบ่งเป็นภาพจากกล้องของตัวผู้ใช้เองปรากฏเป็นจอภาพขนาดเล็กที่มุมขวาบน และจอภาพใหญ่ด้านหลังสำหรับแสดงภาพจากคู่สนทนา
+	 \begin{figure}[h]
+	 	\centering
+	 	\includegraphics[width=0.9\textwidth]{TorpedoSIP}
+	 	\caption{TORPEDO SIP Connection diagram}
+	 	\label{Fig:torpedoSIP}
+	 \end{figure}
+	 \subsubsection{ThanksModule}
+	 เป็นโมดูลที่ทำหน้าที่แสดงผลลัพธ์ที่ถูกส่งกลับมาหลังจากการยืนยันตัวตนเสร็จสิ้น ให้ลูกค้าทราบว่าการลงทะเบียนสำเร็จหรือไม่ นอกจากนี้ยังใช้ในการ Redirect URL เข้าสู่หน้าอื่นตาม URL ที่ส่งมาในตอนแรก
+	 
+\subsection{ApproveKYC}
+	API ที่อยู่ใน TORPEDO KYC SERVICE ทำหน้าที่จัดการข้อมูลการทำ KYC หลังจากที่เจ้าหน้าที่อนุมัติการทำ KYC แล้ว เช่น การออกเอกสาร หรือส่งการตรวจสอบรูปภาพให้กับระบบของกรมการปกครอง ซึ่งมีรายละเอียด ดังที่ปรากฏในตารางที่ \ref{Table:specApproveKYC}
+	% Please add the following required packages to your document preamble:
+	% \usepackage[table,xcdraw]{xcolor}
+	% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+	\begin{table}[!htb]
+		\centering
+		\captionsetup{singlelinecheck = false, justification=justified}
+		\caption{รายละเอียดของ API approveKYC}
+		\label{Table:specApproveKYC}
+		\begin{tabular}{|l|l|}
+			\hline
+			\rowcolor[HTML]{FFFFFF} 
+			API name & approveKyc \\ \hline
+			Method & POST \\ \hline
+			URLs & https://\{url\}/api/\{version\}/kyc/approve \\ \hline
+		\end{tabular}
+	\end{table}
+	% Please add the following required packages to your document preamble:
+	% \usepackage[table,xcdraw]{xcolor}
+	% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+	\begin{table}[!htb]
+		\centering
+		\captionsetup{singlelinecheck = false, justification=justified}
+		\caption{รายละเอียด Request API videoKyc}
+		\label{Table:reqApproveKYC}
+		\begin{tabular}{|l|l|l|l|l|}
+			\hline
+			\rowcolor[HTML]{C0C0C0} 
+			\multicolumn{5}{|c|}{\cellcolor[HTML]{C0C0C0}Request Body Parameter} \\ \hline
+			\rowcolor[HTML]{C0C0C0} 
+			Parameter Name & M/O & SV/MV & Data Type & Description \\ \hline
+			url & M & SV & String & Server domain url \\ \hline
+			version & M & SV & String & API Version ex. v1 \\ \hline
+			\rowcolor[HTML]{C0C0C0} 
+			\multicolumn{5}{|c|}{\cellcolor[HTML]{C0C0C0}Header Body Parameter} \\ \hline
+			Authorization & M & SV & String & Authorization JWT \\ \hline
+			\rowcolor[HTML]{C0C0C0} 
+			\multicolumn{5}{|c|}{\cellcolor[HTML]{C0C0C0}Response Body Parameter} \\ \hline
+			profileId & M & SV & String & Client profile id \\ \hline
+			msisdn & M & SV & String & Mobile number +(66) \\ \hline
+			cardId & M & SV & String & Client Id card number \\ \hline
+			idCardImage & M & SV & String & Id card image BASE64 format \\ \hline
+			faceImage & M & SV & String & Client image BASE64 format \\ \hline
+			\multicolumn{5}{|r|}{\begin{tabular}[c]{@{}r@{}}*M: Mandatory; O: Optional;\\ *SV: Single value; MV: Multi value;\end{tabular}} \\ \hline
+		\end{tabular}
+	\end{table}
+	% Please add the following required packages to your document preamble:
+	% \usepackage[table,xcdraw]{xcolor}
+	% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+	\begin{table}[!htb]
+		\centering
+		\captionsetup{singlelinecheck = false, justification=justified}
+		\caption{รายละเอียด Response API videoKyc}
+		\label{Table:resApproveKYC}
+		\begin{tabular}{|l|l|l|l|l|}
+			\hline
+			\rowcolor[HTML]{C0C0C0} 
+			\multicolumn{5}{|c|}{\cellcolor[HTML]{C0C0C0}Response Body Parameter} \\ \hline
+			\rowcolor[HTML]{C0C0C0} 
+			Parameter Name & M/O & SV/MV & Data Type & Description \\ \hline
+			resultCode & M & SV & String & API Result code \\ \hline
+			\multicolumn{5}{|r|}{\begin{tabular}[c]{@{}r@{}}*M: Mandatory; O: Optional;\\ *SV: Single value; MV: Multi value;\end{tabular}} \\ \hline
+		\end{tabular}
+	\end{table}
+
+\subsection{videoKYC}
+	API ที่ใช้ส่งข้อมูลให้กับทาง AIS เพื่อนำไปจัดเก็บลงในฐานข้อมูล เช่น ข้อมูลของลูกค้า เอกสารและรูปภาพระหว่างการยืนยันตัวตน รวมทั้งผลลัพธ์ของการยืนยันตัวตน ซึ่งมีรายละเอียดดังที่ปรากฏในตารางที่ \ref{Table:specVideoKYC} - \ref{Table:resVideoKYC}
+	% Please add the following required packages to your document preamble:
+	% \usepackage[table,xcdraw]{xcolor}
+	% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+	\begin{table}[!htb]
+		\centering
+		\captionsetup{singlelinecheck = false, justification=justified}
+		\caption{รายละเอียดของ API videoKYC}
+		\label{Table:specVideoKYC}
+		\begin{tabular}{|l|l|}
+			\hline
+			\rowcolor[HTML]{FFFFFF} 
+			API name & videoKyc \\ \hline
+			Method & POST \\ \hline
+			URLs & https://\{url\}/api-dir/mmc\_KYCacqkycResponse/kyc-response \\ \hline
+		\end{tabular}
+	\end{table}
+	% Please add the following required packages to your document preamble:
+	% \usepackage[table,xcdraw]{xcolor}
+	% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+	\begin{table}[!htb]
+		\centering
+		\captionsetup{singlelinecheck = false, justification=justified}
+		\caption{รายละเอียด Request API videoKyc}
+		\label{Table:videoKYC}
+		\begin{tabular}{lclclclcl}
+			\hline
+			\rowcolor[HTML]{C0C0C0} 
+			\multicolumn{5}{c}{\cellcolor[HTML]{C0C0C0}Request Path Parameter} \\ \hline
+			\rowcolor[HTML]{C0C0C0} 
+			\multicolumn{1}{|l|}{\cellcolor[HTML]{C0C0C0}Parameter Name} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}M/O} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}SV/MV} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}Data Type} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}Description} \\ \hline
+			\multicolumn{1}{|l|}{url} & \multicolumn{1}{l|}{\cellcolor[HTML]{FFFFFF}M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{} \\ \hline
+			\rowcolor[HTML]{C0C0C0} 
+			\multicolumn{5}{|c|}{\cellcolor[HTML]{C0C0C0}\textbf{Request Body Parameter}} \\ \hline
+			\multicolumn{1}{|l|}{transactionId} & \multicolumn{1}{l|}{M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{Client transaction id} \\ \hline
+			\multicolumn{1}{|l|}{idCard} & \multicolumn{1}{l|}{M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{Client id card number} \\ \hline
+			\multicolumn{1}{|l|}{appPdf} & \multicolumn{1}{l|}{M/O} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{BASE64 PDF document} \\ \hline
+			\multicolumn{1}{|l|}{Image} & \multicolumn{1}{l|}{M/O} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{BASE64 Client image} \\ \hline
+			\multicolumn{1}{|l|}{resultCode} & \multicolumn{1}{l|}{M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{Approve/ Reject Code} \\ \hline
+			\multicolumn{1}{|l|}{resultMessage} & \multicolumn{1}{l|}{M/O} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{Approve message} \\ \hline
+			\multicolumn{1}{|l|}{reasonMessage} & \multicolumn{1}{l|}{M/O} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{Reject reason message} \\ \hline
+			\multicolumn{5}{|r|}{\begin{tabular}[c]{@{}r@{}}*M: Mandatory; O: Optional;\\ *SV: Single value; MV: Multi value;\end{tabular}} \\ \hline
+		\end{tabular}
+	\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[!htb]
+	\centering
+	\captionsetup{singlelinecheck = false, justification=justified}
+	\caption{รายละเอียด Response API videoKyc}
+	\label{Table:resVideoKYC}
+	\begin{tabular}{lllll}
+		\hline
+		\rowcolor[HTML]{C0C0C0} 
+		\multicolumn{5}{c}{\cellcolor[HTML]{C0C0C0}Response Body Parameter} \\ \hline
+		\rowcolor[HTML]{C0C0C0} 
+		\multicolumn{1}{|l|}{\cellcolor[HTML]{C0C0C0}Parameter Name} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}M/O} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}SV/MV} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}Data Type} & \multicolumn{1}{l|}{\cellcolor[HTML]{C0C0C0}Description} \\ \hline
+		\multicolumn{1}{|l|}{resultCode} & \multicolumn{1}{l|}{M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{API Status code} \\ \hline
+		\multicolumn{1}{|l|}{developerMessage} & \multicolumn{1}{l|}{M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{} \\ \hline
+		\multicolumn{1}{|l|}{userMessage} & \multicolumn{1}{l|}{M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{} \\ \hline
+		\multicolumn{1}{|l|}{resultData} & \multicolumn{1}{l|}{M/O} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{Object} & \multicolumn{1}{l|}{Result Object} \\ \hline
+		\multicolumn{1}{|l|}{- resultMessage} & \multicolumn{1}{l|}{M} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{Result Message from API} \\ \hline
+		\multicolumn{1}{|l|}{- resultCode} & \multicolumn{1}{l|}{M/O} & \multicolumn{1}{l|}{SV} & \multicolumn{1}{l|}{String} & \multicolumn{1}{l|}{Result code from API} \\ \hline
+		\multicolumn{5}{|r|}{\begin{tabular}[c]{@{}r@{}}*M: Mandatory; O: Optional;\\ *SV: Single value; MV: Multi value;\end{tabular}} \\ \hline
+	\end{tabular}
+\end{table}

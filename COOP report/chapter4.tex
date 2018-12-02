@@ -1,4 +1,93 @@
-\chapter{ผลการทดลอง}
+\chapter{ผลการปฏิบัติงาน}
 \label{chapter:result}
 
-บทที่สี่
+การพัฒนาระบบยืนยันและพิสูจน์ตัวตนลูกค้าผ่านวิดีโอคอลจะช่วยให้การลงทะเบียบซิมการ์ดมีความสะดวกแก้ลูกค้ามากขึ้น ช่วยให้ลูกค้าสามารถลงทะเบียบซิมการ์ดจากที่ใดก็ตามที่มีอินเตอร์เน็ตโดยใช้เพียงสมาร์ทโฟน แท็บเล็ตหรือคอมพิวเตอร์เท่านั้น ซึ่งเป็นการสร้างโอกาสให้กับผู้ให้บริการอีกทั้งการตรวจสอบข้อมูลด้วยบุคคลที่สามซึ่งเป็นพนักงานภายในบริษัททำให้มีความผิดพลาดของข้อมูลที่ส่งไปตรวจสอบน้อยลง ส่วนรหัสการเข้าสู่ระบบของเจ้าหน้าที่ผู้ให้บริการจำเป็นต้องเข้าผ่านระบบภายในของ AIS ทำให้ลดปัญหาการลงทะเบียนซิมการ์ดด้วยตนเองจากรหัสผ่านที่หลุดออกไปได้ อย่างไรก็ระบบนี้จำเป็นต้องมีเจ้าหน้าที่ค่อยให้บริการและดูแลอยู่เสมอซึ่งก็ต้องมีต้นทุนที่เพิ่มเข้ามาในส่วนนี้ด้วย
+\section{หน้าจอเว็บแอปพลิเคชันในส่วนของลูกค้า (Client)}
+
+สำหรับเว็บแอปพลิเคชันในส่วนของฝั่งลูกค้าหน้า Mockup ดังรูปที่ \ref{Fig:mockup} เป็นหน้าที่ใช้ในขั้นตอนการพัฒนาและการทดสอบเท่านั้น เมื่อใช้ใน Production หน้านี้จะถูกนำออกไป ส่วนหน้าจอ Intro, Videocall, Thanks ดังรูปที่ \ref{Fig:intro} - \ref{Fig:thanks} จะเป็นหน้าจอที่ลูกค้าจะใช้งานเพื่อทำกระบวนการลงทะเบียนหรือเพื่อดูผลลัพธ์ ซึ่งรองรับการแสดงผลในหลายอุปกรณ์ (Responsive) ดังรูปที่ \ref{Fig:responsive}  และรองรับการแสดงผลในสองภาษา ดังรูปที่  \ref{Fig:lang} 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{MockupPage}
+	\caption{ตัวอย่างหน้า Mockup}
+	\label{Fig:mockup}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{IntroPage}
+	\caption{ตัวอย่างหน้า Intro}
+	\label{Fig:intro}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{VideocallPage}
+	\caption{ตัวอย่างหน้าจอ Videocall}
+	 \label{Fig:videocall}
+\end{figure}
+\begin{figure}[!h]
+	\centering
+	\subfigure[]{
+		\label{Fig:thanks:success}
+		\includegraphics[width=0.48\textwidth]{ThanksSuccess}  
+	}
+	\subfigure[]{
+		\label{Fig:thanks:failed}
+		\includegraphics[width=0.48\textwidth]{ThanksFailed}  
+	}
+	\caption{ตัวอย่างหน้า Thanks (ก) ลงทะเบียนสำเร็จ (ข) ลงทะเบียนไม่สำเร็จ}
+	\label{Fig:thanks}
+\end{figure}
+\begin{figure}[!h]
+	\centering
+	\subfigure[]{
+		\label{Fig:responsive:mobile}
+		\includegraphics[width=0.26\textwidth]{ResMobile}  
+	}
+	\quad
+	\subfigure[]{
+		\label{Fig:responsive:window}
+		\includegraphics[width=0.67\textwidth]{ResScreen}  
+	}
+	\caption{ตัวอย่างการแสดงผลแบบ Responsive (ก) Mobile (ข) Windows}
+	\label{Fig:responsive}
+\end{figure}
+\begin{figure}[!h]
+	\centering
+	\subfigure[]{
+		\label{Fig:lang:thai}
+		\includegraphics[width=0.4\textwidth]{LangThai}  
+	}
+	\qquad
+	\subfigure[]{
+		\label{Fig:lang:eng}
+		\includegraphics[width=0.4\textwidth]{LangEng}  
+	}
+	\caption{ตัวอย่างการแสดงผลในสองภาษา (ก) ภาษาไทย (ข) ภาษาอังกฤษ}
+	\label{Fig:lang}
+\end{figure}
+
+\section{เว็บแอปพลิเคชันในส่วนของผู้ให้บริการ (Call center)}
+ทางฝั่งเว็บแอปพลิเคชันสำหรับผู้ให้บริการนั้นจะเป็นส่วนสำหรับควบคุม และจัดการเพื่อทำกระบวน การรู้จักลูกค้า เมื่อมีลูกค้าติดต่อเข้ามาระบบจะแสดงรายละเอียดและรายชื่อของลูกค้า ดังรูปที่ \ref{Fig:incoming} \\ถ้าหากเจ้าหน้าที่รับสายจะเข้าสู่หน้าวิดีโอคอล ซึ่งในหน้านี้จะแสดงข้อมูลข้อลูกค้าและมีส่วนจัดการสำหรับเจ้าหน้าที่ เช่น ถ่ายรูป วางสาย อนุมัติ/ปฏิเสธการลงทะเบียน ดังรูปที่ \ref{Fig:adminVideocall}  นอกจากนี้ยังสามารถติดตามสถานะการอัพโหลดข้อมูลของลูกค้าได้ ดังรูปที่ \ref{Fig:upload} ซึ่งข้อมูลเหล่านี้จะถูกนำไปใช้ในการสร้างเอกสารเพื่อเป็นหลักฐานในการลงทะเบียนโดยอัตโนมัติ ดังที่ปรากฏในรูปที่ \ref{Fig:report}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{Incoming}
+	\caption{ตัวอย่างหน้ารายการลูกค้าที่ติดต่อเข้ามา Incoming list}
+	\label{Fig:incoming}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{AdminVideocall}
+	\caption{ตัวอย่างหน้าควบคุมของเจ้าหน้าที่ระหว่าง Videocall}
+	\label{Fig:adminVideocall}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{UploadProcess}
+	\caption{ตัวอย่างรายการสถานะการอัพโหลดข้อมูลของลูกค้า}
+	\label{Fig:upload}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{Report}
+	\caption{ตัวอย่างเอกสารคำขอใช้บริการโทรศัพท์เคลื่อนที่}
+	\label{Fig:report}
+\end{figure}
