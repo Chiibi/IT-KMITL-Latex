@@ -7,6 +7,12 @@
 
 \graphicspath{ {images/} }
 
+\makeatletter
+% \patchcmd{<cmd>}{<search>}{<replace>}{<succes>}{<failure>}
+\patchcmd{\@chapter}{\addtocontents{lof}{\protect\addvspace{10\p@}}}{}{}{}% LoF
+\patchcmd{\@chapter}{\addtocontents{lot}{\protect\addvspace{10\p@}}}{}{}{}% LoT
+\makeatother
+
 %1. Your thesis title (THAI)
 \newcommand{\ThesisTiTle}{ชื่อโปรเจ็กต์จบ}
 %2. Your thesis title (ENG)
@@ -31,17 +37,15 @@
 \newcommand{\AcaYAD}{2018}
 %12. วันส่งรายงาน
 \newcommand{\SubD}{10 พฤศจิกายน พ.ศ. 2561}
-%13. สาขา
-\newcommand{\Department}{วิศวกรรมซอร์ฟแวร์}
-%14. วันเริ่มทำงาน
+%13. วันเริ่มทำงาน
 \newcommand{\StartDWork}{23 กรกฎาคม พ.ศ. 2561}
-%15. วันสุดท้ายของการทำงาน
+%14. วันสุดท้ายของการทำงาน
 \newcommand{\EndDWork}{30 พฤศจิกายน พ.ศ. 2561}
-%16. ที่อยู่สถานประกอบการ
+%15. ที่อยู่สถานประกอบการ
 \newcommand{\Address}{ที่อยู่}
-%17. เว็บไซต์สถานประกอบการ
+%16. เว็บไซต์สถานประกอบการ
 \newcommand{\Website}{เว็บไซต์}
-%18. ตำแหน่งานที่ปฏิบัติ
+%17. ตำแหน่งานที่ปฏิบัติ
 \newcommand{\Position}{ตำแหน่งงานที่ปฏิบัติ}
 
 \begin{document}    
@@ -61,6 +65,9 @@
     \makeabstract{
     	บทคัดย่อ
     }
+%    \makeabstracteng{
+%        Abstract eng
+%    }
 
     \newpage
     \addcontentsline{toc}{chapter}{สารบัญ}
